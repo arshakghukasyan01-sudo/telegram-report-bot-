@@ -9,11 +9,10 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 # === Настройки ===
 TG_TOKEN = os.environ.get("TG_BOT_TOKEN", "8213431004:AAEZX0ZFe44fD92YScxw-GOvEKQDwY_-fp8")
-KOYEB_HOST = os.environ.get("KOYEB_HOST")  # например, your-app.koyeb.app
+KOYEB_HOST = os.environ.get("KOYEB_HOST")
 WEBHOOK_PATH = f"/webhook/{TG_TOKEN}"
 WEBHOOK_URL = f"https://{KOYEB_HOST}{WEBHOOK_PATH}" if KOYEB_HOST else None
 
-# ID канала или группы, куда бот будет отправлять отчёты
 TARGET_CHAT_ID = int(os.environ.get("TARGET_CHAT_ID", "-4658562147"))
 
 # === Инициализация ===
@@ -21,7 +20,7 @@ bot = Bot(token=TG_TOKEN)
 dp = Dispatcher()
 app = Flask(__name__)
 
-# === Состояния формы ===
+# === Состояния ===
 class ReportForm(StatesGroup):
     nickname = State()
     date = State()
@@ -30,15 +29,17 @@ class ReportForm(StatesGroup):
 
 # === Клавиатуры ===
 main_menu = ReplyKeyboardMarkup(
-    [[KeyboardButton("📨 Отправить отчёт")]],
+    keyboard=[
+        [KeyboardButton(text="📨 Отправить отчёт")]
+    ],
     resize_keyboard=True
 )
 
 activity_kb = ReplyKeyboardMarkup(
-    [
-        [KeyboardButton("ФГ")],
-        [KeyboardButton("ЗБ")],
-        [KeyboardButton("Вышка")]
+    keyboard=[
+        [KeyboardButton(text="ФГ")],
+        [KeyboardButton(text="ЗБ")],
+        [KeyboardButton(text="Вышка")]
     ],
     resize_keyboard=True,
     one_time_keyboard=True
@@ -55,21 +56,21 @@ async def start_report(message: types.Message, state: FSMContext):
     await message.answer("Введите ваш игровой ник:", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(ReportForm.nickname)
 
-# === Шаг 1: Ник ===
+# === Ник ===
 @dp.message(ReportForm.nickname)
 async def set_nickname(message: types.Message, state: FSMContext):
     await state.update_data(nickname=message.text)
     await message.answer("Введите дату (например, 16.10.2025):")
     await state.set_state(ReportForm.date)
 
-# === Шаг 2: Дата ===
+# === Дата ===
 @dp.message(ReportForm.date)
 async def set_date(message: types.Message, state: FSMContext):
     await state.update_data(date=message.text)
     await message.answer("Выберите вид активности:", reply_markup=activity_kb)
     await state.set_state(ReportForm.activity)
 
-# === Шаг 3: Активность ===
+# === Активность ===
 @dp.message(ReportForm.activity)
 async def set_activity(message: types.Message, state: FSMContext):
     if message.text not in ["ФГ", "ЗБ", "Вышка"]:
@@ -79,11 +80,10 @@ async def set_activity(message: types.Message, state: FSMContext):
     await message.answer("Отправьте доказательство (фото, видео или ссылку):", reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(ReportForm.proof)
 
-# === Шаг 4: Доказательство ===
+# === Доказательство ===
 @dp.message(ReportForm.proof)
 async def finish_report(message: types.Message, state: FSMContext):
     data = await state.get_data()
-
     report_text = (
         f"📋 *Новый отчёт:*\n"
         f"👤 От: @{message.from_user.username or 'Без_ника'}\n"
@@ -105,7 +105,7 @@ async def finish_report(message: types.Message, state: FSMContext):
 
     await state.clear()
 
-# === Flask маршруты ===
+# === Flask ===
 @app.route("/")
 def index():
     return "Bot is running!"
@@ -116,7 +116,7 @@ def webhook():
     asyncio.run(dp.feed_update(bot, update))
     return Response(status=200)
 
-# === Запуск Webhook ===
+# === Webhook ===
 async def on_startup():
     if WEBHOOK_URL:
         await bot.delete_webhook()
