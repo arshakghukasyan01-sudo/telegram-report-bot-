@@ -12,8 +12,7 @@ TG_TOKEN = os.environ["8213431004:AAEZX0ZFe44fD92YScxw-GOvEKQDwY_-fp8"]
 KOYEB_HOST = os.environ.get("KOYEB_HOST")  # например your-app.koyeb.app
 WEBHOOK_PATH = f"/webhook/{TG_TOKEN}"
 WEBHOOK_URL = f"https://{KOYEB_HOST}{WEBHOOK_PATH}" if KOYEB_HOST else None
-TARGET_CHAT_ID = -4658562147 int(os.environ.get("TARGET_CHAT_ID", "0"))
-
+TARGET_CHAT_ID = int(os.environ.get("TARGET_CHAT_ID", "-4658562147"))
 # === Инициализация ===
 bot = Bot(8213431004:AAEZX0ZFe44fD92YScxw-GOvEKQDwY_-fp8)
 dp = Dispatcher()
